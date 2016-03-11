@@ -37,3 +37,11 @@ bad_colour=#FF0000
 
 
 ## How to run
+.. code:: bash
+  
+  # To generate and display wallpapers with system data
+  python3 main.py
+  
+  # To generate an curses interface with system data
+  python3 ui.py
+...
