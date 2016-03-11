@@ -13,7 +13,7 @@ Python script to display system, server and endpoint health either as wallpaper 
 ## Configuration
 - After the first unscucessful run the script will create a file in the scripts directory called 'conf'. Edit this file with the desired parramaters for example:
 
-<pre>
+~~~text
 # Configuration file for dynamic_background_generator
 # Written by Dwane Gard
 cisco_device='name of cisco device'{
@@ -33,15 +33,16 @@ width=1920
 good_colour=#00AA00
 intermediate_colour=#FFA500
 bad_colour=#FF0000
-</pre>
+~~~
 
 
 ## How to run
-.. code:: bash
+~~~bash
+
   
   # To generate and display wallpapers with system data
   python3 main.py
   
   # To generate an curses interface with system data
   python3 ui.py
-...
+~~~
