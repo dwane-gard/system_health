@@ -54,7 +54,7 @@ def read_config():
     # Check if conf file exist, if not create it
     if not os.path.exists('conf'):
         open('conf', 'w').write('# Configuration file for dynamic_background_generator\n'
-                                'Written by Dwane Gard\n\n'
+                                '# Written by Dwane Gard\n\n'
                                 'cisco_device=\t{\n'
                                 '\tpassword=\n'
                                 '\tuser=\n'
