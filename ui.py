@@ -1,15 +1,22 @@
-import signal
+#!/usr/bin/python3
+
+"""
+Simple script that displays system, server and endpoint data.
+Requires:
+    Python3.4 or Python2.7(some issues)
+    PIL - Python Imaging Library
+    feh
+    pexpect
+Written by Dwane Gard
+"""
+
 import curses
-from  main import *
+from main import *
 import inspect
-import itertools
 
 # Global variables
 exit_flag = False
 debug_flag = 0
-
-# read_config()
-
 
 # Set exit flag to exit checked when the time is right to exit gracefully
 def signal_handler(signal, frame):

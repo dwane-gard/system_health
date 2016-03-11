@@ -1,12 +1,12 @@
 #!/usr/bin/python3
 
 """
-Simple script that creates and applies a background with system information data
+Simple script that creates and applies a background with system information data.
 Requires:
-    Python3.4 or Python2.7
+    Python3.4 or Python2.7(some issues)
     PIL - Python Imaging Library
     feh
-    ubuntu-font-family (UbuntuMono)
+    pexpect
 Written by Dwane Gard
 """
 
@@ -54,7 +54,7 @@ def read_config():
     # Check if conf file exist, if not create it
     if not os.path.exists('conf'):
         open('conf', 'w').write('# Configuration file for dynamic_background_generator\n'
-                                'Written by Dwane Gard\n\n'
+                                '# Written by Dwane Gard\n\n'
                                 'cisco_device=\t{\n'
                                 '\tpassword=\n'
                                 '\tuser=\n'
@@ -945,7 +945,10 @@ def runserver_threaded_connections(server_q, end_point_q):
 
 # Variable Settings and some initialization
 width, height = 1920, 1080  # Default setting
-read_config()
+try:
+    read_config()
+except ValueError:
+    print('[!] Configuration is unreadable. Review configuration file: conf in program directory and ensure the data is correct.')
 font = ImageFont.truetype('fonts/UbuntuMono-R.ttf', 26)
 font_small = ImageFont.truetype('fonts/UbuntuMono-R.ttf', 20)
 good_colour = '#00AA00'
