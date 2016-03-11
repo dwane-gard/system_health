@@ -945,7 +945,10 @@ def runserver_threaded_connections(server_q, end_point_q):
 
 # Variable Settings and some initialization
 width, height = 1920, 1080  # Default setting
-read_config()
+try:
+    read_config()
+except ValueError:
+    print('[!] Configuration is unreadable. Review configuration file: conf in program directory and ensure the data is correct.')
 font = ImageFont.truetype('fonts/UbuntuMono-R.ttf', 26)
 font_small = ImageFont.truetype('fonts/UbuntuMono-R.ttf', 20)
 good_colour = '#00AA00'
