@@ -8,8 +8,6 @@ Python script to display system, server and endpoint health either as wallpaper 
 - Pexpect
 - feh
 
-## Installation
-
 ## Configuration
 - After the first unscucessful run the script will create a file in the scripts directory called 'conf'. Edit this file with the desired parramaters for example:
 
