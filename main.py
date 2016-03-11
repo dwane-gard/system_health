@@ -1,12 +1,12 @@
 #!/usr/bin/python3
 
 """
-Simple script that creates and applies a background with system information data
+Simple script that creates and applies a background with system information data.
 Requires:
-    Python3.4 or Python2.7
+    Python3.4 or Python2.7(some issues)
     PIL - Python Imaging Library
     feh
-    ubuntu-font-family (UbuntuMono)
+    pexpect
 Written by Dwane Gard
 """
 
