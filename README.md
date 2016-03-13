@@ -14,16 +14,16 @@ Python script to display system, server and endpoint health either as wallpaper 
 ~~~text
   # Configuration file for dynamic_background_generator
   # Written by Dwane Gard
-  cisco_device='name of cisco device'{
-    password='password'
-    user='user name'
-    host='host name or ip'
+  cisco_device=<name of cisco device>{
+    password=<password>
+    user=<user name>
+    host=<host name or ip>
   }
-  server-device='name of server'{
-    password='password'
-    user='user name'
-    host='host name or ip'
-    port='port number'
+  server-device=<name of server>{
+    password=<password>
+    user=<user name>
+    host=<host name or ip>
+    port=<port number>
   }
   
   height=1080
