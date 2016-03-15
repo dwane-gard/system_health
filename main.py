@@ -896,51 +896,51 @@ def runserver_threaded_connections(server_q, end_point_q):
     # This should always be one with current config
     if debug_flag == 1:
         print("[Threads active][%s]" % threading.active_count())
-    if threading.active_count() == 1:
-        if debug_flag == 1:
-            print('[Running connections]')
-            print('[-] clearing old ssh server')
+    # if threading.active_count() == 1:
+    if debug_flag == 1:
+        print('[Running connections]')
+        print('[-] clearing old ssh server')
 
-        # Clear out old data as to not have an infinitely expanding list
-        server_output = []
+    # Clear out old data as to not have an infinitely expanding list
+    server_output = []
 
-        # Define the args to connect to each server and put them in queue
-        for each_server in server_devices:
-            server_args = "%s|%s|%s|%s" % (each_server.ip, each_server.user, each_server.passwd, each_server.port)
-            server_q.put(server_args)
+    # Define the args to connect to each server and put them in queue
+    for each_server in server_devices:
+        server_args = "%s|%s|%s|%s" % (each_server.ip, each_server.user, each_server.passwd, each_server.port)
+        server_q.put(server_args)
 
-        # Send the queue to the worker function
-        for each in range(max_threads):
-            server_worker = Thread(target=server_con, args=(server_q, server_output))
-            server_worker.setDaemon(True)
-            server_worker.start()
-        if debug_flag == 1:
-            print('[-] clearing old ssh connections')
+    # Send the queue to the worker function
+    for each in range(max_threads):
+        server_worker = Thread(target=server_con, args=(server_q, server_output))
+        server_worker.setDaemon(True)
+        server_worker.start()
+    if debug_flag == 1:
+        print('[-] clearing old ssh connections')
 
-        # Clear out old data as to not have an infinitely expanding list
-        cisco_connections = []
+    # Clear out old data as to not have an infinitely expanding list
+    cisco_connections = []
 
-        # Define the args to connect to each cisco device and put them in a queue
-        for each_ssh in cisco_devices:
-            ssh_args = "%s|%s|%s" % (each_ssh.ip, each_ssh.user, each_ssh.passwd)
-            end_point_q.put(ssh_args)
+    # Define the args to connect to each cisco device and put them in a queue
+    for each_ssh in cisco_devices:
+        ssh_args = "%s|%s|%s" % (each_ssh.ip, each_ssh.user, each_ssh.passwd)
+        end_point_q.put(ssh_args)
 
-        # Send the queue to the worker function
-        for each in range(max_threads):
-            ssh_worker = Thread(target=end_point_con, args=(end_point_q, cisco_connections))
-            ssh_worker.setDaemon(True)
-            ssh_worker.start()
+    # Send the queue to the worker function
+    for each in range(max_threads):
+        ssh_worker = Thread(target=end_point_con, args=(end_point_q, cisco_connections))
+        ssh_worker.setDaemon(True)
+        ssh_worker.start()
 
-        # Block progression of the script till all queues are empty
-        server_q.join()
-        end_point_q.join()
-        if debug_flag == 1:
-            print('[Finished Connections]')
-        return server_output, cisco_connections
-    else:
-        if debug_flag == 1:
-            print('[!!] Thread is flailing, attempting to recover')
-        threading._shutdown()
+    # Block progression of the script till all queues are empty
+    server_q.join()
+    end_point_q.join()
+    if debug_flag == 1:
+        print('[Finished Connections]')
+    return server_output, cisco_connections
+    # else:
+    #     if debug_flag == 1:
+    #         print('[!!] Thread is flailing, attempting to recover')
+    #     threading._shutdown()
 
 
 # Variable Settings and some initialization

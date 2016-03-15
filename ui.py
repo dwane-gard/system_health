@@ -17,6 +17,7 @@ import inspect
 # Global variables
 exit_flag = False
 debug_flag = 0
+x_cur_pos, y_cur_pos = 0, 0
 
 # Set exit flag to exit checked when the time is right to exit gracefully
 def signal_handler(signal, frame):
@@ -114,6 +115,66 @@ class box_data:
         white_space_string = ' '*(int((width/2)-int(len(string)/2))-2)
         return white_space_string
 
+class Menu:
+    def __init__(self):
+        # Set colours to use
+        curses.start_color()
+        curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_GREEN)
+        curses.init_pair(2, curses.COLOR_WHITE, curses.COLOR_BLACK)
+        curses.init_pair(3, curses.COLOR_WHITE, curses.COLOR_YELLOW)
+        curses.use_default_colors()
+
+        self.get_input()
+        return
+
+    def get_input(self):
+        while True:
+            c = stdscr.getch()
+            if c == ord('z'):
+                dialog_box(['derp', 'derp', 'derp'])
+            if c == ord('x'):
+                stdscr.addstr(x_cur_pos, y_cur_pos, "x_DERP", curses.color_pair(3))
+            if c == ord('c'):
+                stdscr.addstr(x_cur_pos, y_cur_pos, "c_DERP", curses.color_pair(3))
+        return
+
+    def print_menu(self):
+        menu_cur = 2
+        menu_cur = curse_print('z ', curses.color_pair(1),menu_cur, height-4)
+        menu_cur = curse_print("Add new endpoint", curses.color_pair(2),menu_cur, height-4)
+        menu_cur = curse_print(' | ', curses.color_pair(2),menu_cur, height-4)
+        menu_cur = curse_print('x ', curses.color_pair(1),menu_cur, height-4)
+        menu_cur = curse_print("Add new server", curses.color_pair(2),menu_cur, height-4)
+        menu_cur = curse_print(' | ', curses.color_pair(2),menu_cur, height-4)
+        menu_cur = curse_print('c ', curses.color_pair(1),menu_cur, height-4)
+        menu_cur = curse_print("Go on with your life", curses.color_pair(2),menu_cur, height-4)
+        return
+
+
+def dialog_box(options):
+    dialog_origin = height/2, width/2
+    req_lines = len(options) + 6
+    req_collums = len(max(options)) + 4
+
+    dialog_height_start = dialog_origin[0] - req_collums/2
+    dialog_height_end = dialog_origin[0] + req_collums/2
+    dialog_width_start = dialog_origin[1] - req_lines/2
+    dialog_width_end = dialog_origin[1] + req_lines/2
+
+    text_start = dialog_height_start-2, dialog_width_start -2
+    y_cur = text_start[0]
+    x_cur = text_start[1]
+    for each_option in options:
+        curse_print(each_option, curses.color_pair(3), x_cur, y_cur)
+        y_cur += 1
+    curse_print("  ", curses.color_pair(3), dialog_width_start, dialog_height_start)
+
+
+def curse_print(ze_string, colour_pair, x_cur, y_cur):
+    stdscr.addstr(int(y_cur), int(x_cur), ze_string, colour_pair)
+    x_cur += len(ze_string)
+    return x_cur
+
 
 def local_main():
     global height, width, stdscr, y_cur_pos, x_cur_pos
@@ -122,9 +183,13 @@ def local_main():
     end_point_q = Queue(maxsize=2)
 
     stdscr = curses.initscr()
-
+    height, width = stdscr.getmaxyx()
     curses.noecho()
     stdscr.keypad(True)
+
+    menu = Thread(target=Menu)
+    menu.setDaemon(True)
+    menu.start()
 
     while True:
         height, width = stdscr.getmaxyx()
@@ -148,17 +213,17 @@ def local_main():
 
         stdscr.erase()
         stdscr.border(0)
-        try:
-            box_data(system_strings_to_write, 'System Health')
-            box_data(server_output, 'Servers')
-            box_data(cisco_connections, 'Endpoints')
-
-            stdscr.refresh()
-            count += 1
+        # try:
+        box_data(system_strings_to_write, 'System Health')
+        box_data(server_output, 'Servers')
+        box_data(cisco_connections, 'Endpoints')
+        Menu.print_menu(menu)
+        stdscr.refresh()
+        count += 1
 
         # If we have an error assume the window is too small, don't think this is te right idea but working?!!?
-        except:
-            stdscr.addstr(x_cur_pos, y_cur_pos, 'Window is too small')
+        # except:
+        #     stdscr.addstr(x_cur_pos, y_cur_pos, 'Window is too small')
 
         # Check if we want to exit, if so run commands to exit gracefully
         if exit_flag is True:
