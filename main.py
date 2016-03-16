@@ -864,7 +864,7 @@ def add_count(draw, count):
     draw.text((width/2, height-80), str(count), font=font, fill='#00AA00')
 
 
-# manages server connection threads
+# Manages server connection threads
 def server_con(q, local_server_output):
     while True:
         if q.empty() is True:
@@ -960,7 +960,6 @@ shape_origin = (width * .8, height * .91)
 # Send captured SIGINT's to signal handler function to allow for a graceful exit
 signal.signal(signal.SIGINT, signal_handler)
 shapes_to_draw_class = [ShapeAlerts(shape_origin, 0, ""), ]
-
 
 
 def main():

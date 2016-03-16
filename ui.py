@@ -18,6 +18,8 @@ import inspect
 exit_flag = False
 debug_flag = 0
 x_cur_pos, y_cur_pos = 0, 0
+ze_lock = threading.Lock()
+
 
 # Set exit flag to exit checked when the time is right to exit gracefully
 def signal_handler(signal, frame):
@@ -124,54 +126,76 @@ class Menu:
         curses.init_pair(3, curses.COLOR_WHITE, curses.COLOR_YELLOW)
         curses.use_default_colors()
 
-        self.get_input()
-        return
-
-    def get_input(self):
         while True:
             c = stdscr.getch()
             if c == ord('z'):
-                dialog_box(['derp', 'derp', 'derp'])
+                ze_lock.acquire()
+                open_dialog_box = (DialogBox(['derp', 'derp', 'derp']))
+                open_dialog_box.build()
+                open_dialog_box.use()
+
+
             if c == ord('x'):
                 stdscr.addstr(x_cur_pos, y_cur_pos, "x_DERP", curses.color_pair(3))
             if c == ord('c'):
                 stdscr.addstr(x_cur_pos, y_cur_pos, "c_DERP", curses.color_pair(3))
+
         return
 
     def print_menu(self):
         menu_cur = 2
-        menu_cur = curse_print('z ', curses.color_pair(1),menu_cur, height-4)
-        menu_cur = curse_print("Add new endpoint", curses.color_pair(2),menu_cur, height-4)
-        menu_cur = curse_print(' | ', curses.color_pair(2),menu_cur, height-4)
-        menu_cur = curse_print('x ', curses.color_pair(1),menu_cur, height-4)
-        menu_cur = curse_print("Add new server", curses.color_pair(2),menu_cur, height-4)
-        menu_cur = curse_print(' | ', curses.color_pair(2),menu_cur, height-4)
-        menu_cur = curse_print('c ', curses.color_pair(1),menu_cur, height-4)
-        menu_cur = curse_print("Go on with your life", curses.color_pair(2),menu_cur, height-4)
+        menu_cur = curse_print('z ', curses.color_pair(1),menu_cur, height-4, stdscr)
+        menu_cur = curse_print("Add new endpoint", curses.color_pair(2),menu_cur, height-4, stdscr)
+        menu_cur = curse_print(' | ', curses.color_pair(2),menu_cur, height-4, stdscr)
+        menu_cur = curse_print('x ', curses.color_pair(1),menu_cur, height-4, stdscr)
+        menu_cur = curse_print("Add new server", curses.color_pair(2),menu_cur, height-4, stdscr)
+        menu_cur = curse_print(' | ', curses.color_pair(2),menu_cur, height-4, stdscr)
+        menu_cur = curse_print('c ', curses.color_pair(1),menu_cur, height-4, stdscr)
+        menu_cur = curse_print("Go on with your life", curses.color_pair(2),menu_cur, height-4, stdscr)
         return
 
+class DialogBox:
+    def __init__(self, options):
+        self.options = options
+        self.dialog_origin = height/2, width/2
+        self.req_lines = int(len(options) + 10)
+        self.req_collums = int(len(max(options)) + 10)
 
-def dialog_box(options):
-    dialog_origin = height/2, width/2
-    req_lines = len(options) + 6
-    req_collums = len(max(options)) + 4
+        self.dialog_height_start = int(self.dialog_origin[0] - self.req_collums/2)
+        self.dialog_height_end = int(self.dialog_origin[0] + self.req_collums/2)
+        self.dialog_width_start = int(self.dialog_origin[1] - self.req_lines/2)
+        self.dialog_width_end = int(self.dialog_origin[1] + self.req_lines/2)
+        self.text_start = self.dialog_height_start-2, self.dialog_width_start -2
+        self.window = curses.newwin(self.req_lines, self.req_collums, self.dialog_height_start, self.dialog_width_start)
+        self.window.border()
+        self.y_cur = 2
+        self.x_cur = 2
 
-    dialog_height_start = dialog_origin[0] - req_collums/2
-    dialog_height_end = dialog_origin[0] + req_collums/2
-    dialog_width_start = dialog_origin[1] - req_lines/2
-    dialog_width_end = dialog_origin[1] + req_lines/2
+    def build(self):
+        self.window = curses.newwin(self.req_lines, self.req_collums, self.dialog_height_start, self.dialog_width_start)
+        self.window.border()
+        self.y_cur = 2
+        self.x_cur = 2
+        for each_option in self.options:
+            curse_print(each_option, curses.color_pair(3), self.x_cur, self.y_cur, self.window)
+            self.y_cur += 1
+        self.window.refresh()
+        return
 
-    text_start = dialog_height_start-2, dialog_width_start -2
-    y_cur = text_start[0]
-    x_cur = text_start[1]
-    for each_option in options:
-        curse_print(each_option, curses.color_pair(3), x_cur, y_cur)
-        y_cur += 1
-    curse_print("  ", curses.color_pair(3), dialog_width_start, dialog_height_start)
+    def use(self):
+        # curses.echo()
+        c2 = stdscr.getch()
+        if c2 == 27:
+            self.close()
+            stdscr.refresh()
+            ze_lock.release()
+
+    def close(self):
+        self.window.erase()
 
 
-def curse_print(ze_string, colour_pair, x_cur, y_cur):
-    stdscr.addstr(int(y_cur), int(x_cur), ze_string, colour_pair)
+def curse_print(ze_string, colour_pair, x_cur, y_cur, window):
+    window.addstr(int(y_cur), int(x_cur), ze_string, colour_pair)
     x_cur += len(ze_string)
     return x_cur
 
@@ -181,6 +205,7 @@ def local_main():
     count = 0
     server_q = Queue(maxsize=2)
     end_point_q = Queue(maxsize=2)
+    ui_q = Queue()
 
     stdscr = curses.initscr()
     height, width = stdscr.getmaxyx()
@@ -192,6 +217,7 @@ def local_main():
     menu.start()
 
     while True:
+
         height, width = stdscr.getmaxyx()
 
         # Set where the cursor should start
@@ -211,6 +237,8 @@ def local_main():
         gpu = '[%s] %s c' % (createImage.gpu.device_name, createImage.gpu.temp)
         system_strings_to_write = [ze_time, ip_address,cpu, gpu]
 
+        ze_lock.acquire()
+
         stdscr.erase()
         stdscr.border(0)
         # try:
@@ -218,8 +246,11 @@ def local_main():
         box_data(server_output, 'Servers')
         box_data(cisco_connections, 'Endpoints')
         Menu.print_menu(menu)
+
         stdscr.refresh()
         count += 1
+
+        ze_lock.release()
 
         # If we have an error assume the window is too small, don't think this is te right idea but working?!!?
         # except:
