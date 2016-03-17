@@ -157,7 +157,7 @@ class Menu:
         menu_cur = curse_print("Edit Configuration", curses.color_pair(2),menu_cur, height-4, stdscr)
         menu_cur = curse_print(' | ', curses.color_pair(2),menu_cur, height-4, stdscr)
         menu_cur = curse_print('x ', curses.color_pair(1),menu_cur, height-4, stdscr)
-        menu_cur = curse_print("Add new server", curses.color_pair(2),menu_cur, height-4, stdscr)
+        menu_cur = curse_print("Go on with your life", curses.color_pair(2),menu_cur, height-4, stdscr)
         menu_cur = curse_print(' | ', curses.color_pair(2),menu_cur, height-4, stdscr)
         menu_cur = curse_print('c ', curses.color_pair(1),menu_cur, height-4, stdscr)
         menu_cur = curse_print("Go on with your life", curses.color_pair(2),menu_cur, height-4, stdscr)
