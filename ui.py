@@ -11,8 +11,10 @@ Written by Dwane Gard
 """
 
 import curses
+import curses.textpad
 from main import *
 import inspect
+import subprocess
 
 # Global variables
 exit_flag = False
@@ -43,7 +45,7 @@ class box_data:
         curses.start_color()
         curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_GREEN)
         curses.init_pair(2, curses.COLOR_WHITE, curses.COLOR_BLACK)
-        curses.init_pair(3, curses.COLOR_WHITE, curses.COLOR_YELLOW)
+        curses.init_pair(3, curses.COLOR_RED, curses.COLOR_BLACK)
         curses.use_default_colors()
 
         # Add title
@@ -123,19 +125,23 @@ class Menu:
         curses.start_color()
         curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_GREEN)
         curses.init_pair(2, curses.COLOR_WHITE, curses.COLOR_BLACK)
-        curses.init_pair(3, curses.COLOR_WHITE, curses.COLOR_YELLOW)
+        curses.init_pair(3, curses.COLOR_RED, curses.COLOR_BLACK)
         curses.use_default_colors()
 
         while True:
             c = stdscr.getch()
             if c == ord('z'):
                 ze_lock.acquire()
-                open_dialog_box = (DialogBox(['derp', 'derp', 'derp']))
-                open_dialog_box.build()
-                open_dialog_box.use()
-
-
+                editor = subprocess.call(['vim', 'conf'])
+                stdscr.clear()
+                curse_print('[+] Reloading Interface', curses.color_pair(1), 2, 2, stdscr)
+                stdscr.refresh()
+                ze_lock.release()
             if c == ord('x'):
+                # ze_lock.acquire()
+                # open_dialog_box = (DialogBox(['derp', 'derp', 'derp']))
+                # open_dialog_box.build()
+                # open_dialog_box.use()
                 stdscr.addstr(x_cur_pos, y_cur_pos, "x_DERP", curses.color_pair(3))
             if c == ord('c'):
                 stdscr.addstr(x_cur_pos, y_cur_pos, "c_DERP", curses.color_pair(3))
@@ -145,7 +151,7 @@ class Menu:
     def print_menu(self):
         menu_cur = 2
         menu_cur = curse_print('z ', curses.color_pair(1),menu_cur, height-4, stdscr)
-        menu_cur = curse_print("Add new endpoint", curses.color_pair(2),menu_cur, height-4, stdscr)
+        menu_cur = curse_print("Edit Configuration", curses.color_pair(2),menu_cur, height-4, stdscr)
         menu_cur = curse_print(' | ', curses.color_pair(2),menu_cur, height-4, stdscr)
         menu_cur = curse_print('x ', curses.color_pair(1),menu_cur, height-4, stdscr)
         menu_cur = curse_print("Add new server", curses.color_pair(2),menu_cur, height-4, stdscr)
@@ -153,6 +159,7 @@ class Menu:
         menu_cur = curse_print('c ', curses.color_pair(1),menu_cur, height-4, stdscr)
         menu_cur = curse_print("Go on with your life", curses.color_pair(2),menu_cur, height-4, stdscr)
         return
+
 
 class DialogBox:
     def __init__(self, options):
@@ -176,8 +183,9 @@ class DialogBox:
         self.window.border()
         self.y_cur = 2
         self.x_cur = 2
+
         for each_option in self.options:
-            curse_print(each_option, curses.color_pair(3), self.x_cur, self.y_cur, self.window)
+            x_cur = curse_print(each_option, curses.color_pair(3), self.x_cur, self.y_cur, self.window)
             self.y_cur += 1
         self.window.refresh()
         return
@@ -205,7 +213,6 @@ def local_main():
     count = 0
     server_q = Queue(maxsize=2)
     end_point_q = Queue(maxsize=2)
-    ui_q = Queue()
 
     stdscr = curses.initscr()
     height, width = stdscr.getmaxyx()
