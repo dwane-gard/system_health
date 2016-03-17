@@ -41,7 +41,7 @@ debug_flag = 0
 
 # Read the config file or create one if it does not exist
 def read_config():
-    global cisco_devices
+    global cisco_devices, server_devices
     global width
     global height
     global good_colour
@@ -50,6 +50,8 @@ def read_config():
 
     device = ''
     device_settings = []
+    cisco_devices = []
+    server_devices = []
 
     # Check if conf file exist, if not create it
     if not os.path.exists('conf'):
@@ -77,13 +79,10 @@ def read_config():
     with open('conf', 'r') as configuration:
         configuration = configuration.read()
         configuration_as_list = configuration.split("\n")
-        # line_count = 0       # Think this is obscelete
 
         cisco_config_open = False
         server_config_open = False
         for each_line in configuration_as_list:
-            # line_count += 1       # Think this is obscelete
-
             # Find each cisco or server device and record each line as a setting
             if each_line.startswith('cisco_device='):
                 cisco_config_open = True
@@ -864,7 +863,7 @@ def add_count(draw, count):
     draw.text((width/2, height-80), str(count), font=font, fill='#00AA00')
 
 
-# manages server connection threads
+# Manages server connection threads
 def server_con(q, local_server_output):
     while True:
         if q.empty() is True:
@@ -896,51 +895,51 @@ def runserver_threaded_connections(server_q, end_point_q):
     # This should always be one with current config
     if debug_flag == 1:
         print("[Threads active][%s]" % threading.active_count())
-    if threading.active_count() == 1:
-        if debug_flag == 1:
-            print('[Running connections]')
-            print('[-] clearing old ssh server')
+    # if threading.active_count() == 1:
+    if debug_flag == 1:
+        print('[Running connections]')
+        print('[-] clearing old ssh server')
 
-        # Clear out old data as to not have an infinitely expanding list
-        server_output = []
+    # Clear out old data as to not have an infinitely expanding list
+    server_output = []
 
-        # Define the args to connect to each server and put them in queue
-        for each_server in server_devices:
-            server_args = "%s|%s|%s|%s" % (each_server.ip, each_server.user, each_server.passwd, each_server.port)
-            server_q.put(server_args)
+    # Define the args to connect to each server and put them in queue
+    for each_server in server_devices:
+        server_args = "%s|%s|%s|%s" % (each_server.ip, each_server.user, each_server.passwd, each_server.port)
+        server_q.put(server_args)
 
-        # Send the queue to the worker function
-        for each in range(max_threads):
-            server_worker = Thread(target=server_con, args=(server_q, server_output))
-            server_worker.setDaemon(True)
-            server_worker.start()
-        if debug_flag == 1:
-            print('[-] clearing old ssh connections')
+    # Send the queue to the worker function
+    for each in range(max_threads):
+        server_worker = Thread(target=server_con, args=(server_q, server_output))
+        server_worker.setDaemon(True)
+        server_worker.start()
+    if debug_flag == 1:
+        print('[-] clearing old ssh connections')
 
-        # Clear out old data as to not have an infinitely expanding list
-        cisco_connections = []
+    # Clear out old data as to not have an infinitely expanding list
+    cisco_connections = []
 
-        # Define the args to connect to each cisco device and put them in a queue
-        for each_ssh in cisco_devices:
-            ssh_args = "%s|%s|%s" % (each_ssh.ip, each_ssh.user, each_ssh.passwd)
-            end_point_q.put(ssh_args)
+    # Define the args to connect to each cisco device and put them in a queue
+    for each_ssh in cisco_devices:
+        ssh_args = "%s|%s|%s" % (each_ssh.ip, each_ssh.user, each_ssh.passwd)
+        end_point_q.put(ssh_args)
 
-        # Send the queue to the worker function
-        for each in range(max_threads):
-            ssh_worker = Thread(target=end_point_con, args=(end_point_q, cisco_connections))
-            ssh_worker.setDaemon(True)
-            ssh_worker.start()
+    # Send the queue to the worker function
+    for each in range(max_threads):
+        ssh_worker = Thread(target=end_point_con, args=(end_point_q, cisco_connections))
+        ssh_worker.setDaemon(True)
+        ssh_worker.start()
 
-        # Block progression of the script till all queues are empty
-        server_q.join()
-        end_point_q.join()
-        if debug_flag == 1:
-            print('[Finished Connections]')
-        return server_output, cisco_connections
-    else:
-        if debug_flag == 1:
-            print('[!!] Thread is flailing, attempting to recover')
-        threading._shutdown()
+    # Block progression of the script till all queues are empty
+    server_q.join()
+    end_point_q.join()
+    if debug_flag == 1:
+        print('[Finished Connections]')
+    return server_output, cisco_connections
+    # else:
+    #     if debug_flag == 1:
+    #         print('[!!] Thread is flailing, attempting to recover')
+    #     threading._shutdown()
 
 
 # Variable Settings and some initialization
@@ -960,7 +959,6 @@ shape_origin = (width * .8, height * .91)
 # Send captured SIGINT's to signal handler function to allow for a graceful exit
 signal.signal(signal.SIGINT, signal_handler)
 shapes_to_draw_class = [ShapeAlerts(shape_origin, 0, ""), ]
-
 
 
 def main():
