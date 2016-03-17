@@ -3,10 +3,11 @@
 Python script to display system, server and endpoint health either as wallpaper or an curses ui.
 
 ## Requirements:
-- Linux Operationg system
+- Linux Operationg System
 - Python 3.4+
 - Pexpect
 - feh
+- Vim
 
 ## Configuration
 - After the first unscucessful run the script will create a file in the scripts directory called 'conf'. Edit this file with the desired parramaters for example:
