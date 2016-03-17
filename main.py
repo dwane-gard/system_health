@@ -41,7 +41,7 @@ debug_flag = 0
 
 # Read the config file or create one if it does not exist
 def read_config():
-    global cisco_devices
+    global cisco_devices, server_devices
     global width
     global height
     global good_colour
@@ -50,6 +50,8 @@ def read_config():
 
     device = ''
     device_settings = []
+    cisco_devices = []
+    server_devices = []
 
     # Check if conf file exist, if not create it
     if not os.path.exists('conf'):
@@ -77,13 +79,10 @@ def read_config():
     with open('conf', 'r') as configuration:
         configuration = configuration.read()
         configuration_as_list = configuration.split("\n")
-        # line_count = 0       # Think this is obscelete
 
         cisco_config_open = False
         server_config_open = False
         for each_line in configuration_as_list:
-            # line_count += 1       # Think this is obscelete
-
             # Find each cisco or server device and record each line as a setting
             if each_line.startswith('cisco_device='):
                 cisco_config_open = True

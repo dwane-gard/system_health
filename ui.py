@@ -26,6 +26,8 @@ ze_lock = threading.Lock()
 # Set exit flag to exit checked when the time is right to exit gracefully
 def signal_handler(signal, frame):
     global exit_flag
+    if ze_lock is True:
+        ze_lock.release()
     print('[!!!] Exiting gracefully')
     exit_flag = True
 
@@ -133,6 +135,7 @@ class Menu:
             if c == ord('z'):
                 ze_lock.acquire()
                 editor = subprocess.call(['vim', 'conf'])
+                read_config()
                 stdscr.clear()
                 curse_print('[+] Reloading Interface', curses.color_pair(1), 2, 2, stdscr)
                 stdscr.refresh()
