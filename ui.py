@@ -18,6 +18,7 @@ import subprocess
 
 # Global variables
 exit_flag = False
+resize_flag = False
 debug_flag = 0
 x_cur_pos, y_cur_pos = 0, 0
 ze_lock = threading.Lock()
@@ -29,6 +30,7 @@ def signal_handler(signal, frame):
     if ze_lock is True:
         ze_lock.release()
     stdscr.clear()
+    stdscr.refresh()
     print('[!!!] Exiting gracefully')
     exit_flag = True
 
@@ -124,6 +126,8 @@ class box_data:
 
 class Menu:
     def __init__(self):
+        global resize_flag
+
         # Set colours to use
         curses.start_color()
         curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_GREEN)
@@ -133,26 +137,33 @@ class Menu:
 
         while True:
             c = stdscr.getch()
+            if c == curses.KEY_RESIZE:
+                resize_flag = True
+
             if c == ord('z'):
                 ze_lock.acquire()
-                editor = subprocess.call(['vim', 'conf'])
+
+                # Call vim to edit the local configuration file
+                subprocess.call(['vim', 'conf'])
+
+                # Reread the configuration file
                 read_config()
                 stdscr.clear()
                 curse_print('[+] Reloading Interface', curses.color_pair(1), 2, 2, stdscr)
                 stdscr.refresh()
+
                 ze_lock.release()
             if c == ord('x'):
                 # ze_lock.acquire()
                 # open_dialog_box = (DialogBox(['derp', 'derp', 'derp']))
                 # open_dialog_box.build()
                 # open_dialog_box.use()
-                stdscr.addstr(x_cur_pos, y_cur_pos, "x_DERP", curses.color_pair(3))
+                stdscr.addstr(x_cur_pos, y_cur_pos, "Going on with my life", curses.color_pair(3))
             if c == ord('c'):
-                stdscr.addstr(x_cur_pos, y_cur_pos, "c_DERP", curses.color_pair(3))
+                stdscr.addstr(x_cur_pos, y_cur_pos, "Going on with my life", curses.color_pair(3))
 
-        return
-
-    def print_menu(self):
+    @staticmethod
+    def print_menu():
         menu_cur = 2
         menu_cur = curse_print('z ', curses.color_pair(1),menu_cur, height-4, stdscr)
         menu_cur = curse_print("Edit Configuration", curses.color_pair(2),menu_cur, height-4, stdscr)
@@ -162,7 +173,7 @@ class Menu:
         menu_cur = curse_print(' | ', curses.color_pair(2),menu_cur, height-4, stdscr)
         menu_cur = curse_print('c ', curses.color_pair(1),menu_cur, height-4, stdscr)
         menu_cur = curse_print("Go on with your life", curses.color_pair(2),menu_cur, height-4, stdscr)
-        return
+        return menu_cur
 
 
 class DialogBox:
@@ -250,13 +261,16 @@ def local_main():
 
         ze_lock.acquire()
 
+        if resize_flag is True:
+            curses.resizeterm(height, width)
+
         stdscr.erase()
         stdscr.border(0)
         try:
             box_data(system_strings_to_write, 'System Health')
             box_data(server_output, 'Servers')
             box_data(cisco_connections, 'Endpoints')
-            Menu.print_menu(menu)
+            Menu.print_menu()
 
             stdscr.refresh()
             count += 1
@@ -269,11 +283,11 @@ def local_main():
 
         # Check if we want to exit, if so run commands to exit gracefully
         if exit_flag is True:
-                curses.nocbreak()
-                stdscr.keypad(False)
-                curses.echo()
-                curses.endwin()
-                exit(0)
+            curses.nocbreak()
+            stdscr.keypad(False)
+            curses.echo()
+            curses.endwin()
+            exit(0)
 
 if __name__ == '__main__':
     local_main()
