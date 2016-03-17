@@ -28,6 +28,7 @@ def signal_handler(signal, frame):
     global exit_flag
     if ze_lock is True:
         ze_lock.release()
+    stdscr.clear()
     print('[!!!] Exiting gracefully')
     exit_flag = True
 
