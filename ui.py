@@ -251,20 +251,20 @@ def local_main():
 
         stdscr.erase()
         stdscr.border(0)
-        # try:
-        box_data(system_strings_to_write, 'System Health')
-        box_data(server_output, 'Servers')
-        box_data(cisco_connections, 'Endpoints')
-        Menu.print_menu(menu)
+        try:
+            box_data(system_strings_to_write, 'System Health')
+            box_data(server_output, 'Servers')
+            box_data(cisco_connections, 'Endpoints')
+            Menu.print_menu(menu)
 
-        stdscr.refresh()
-        count += 1
-
-        ze_lock.release()
+            stdscr.refresh()
+            count += 1
 
         # If we have an error assume the window is too small, don't think this is te right idea but working?!!?
-        # except:
-        #     stdscr.addstr(x_cur_pos, y_cur_pos, 'Window is too small')
+        except:
+            stdscr.addstr(x_cur_pos, y_cur_pos, 'Window is too small')
+        finally:
+            ze_lock.release()
 
         # Check if we want to exit, if so run commands to exit gracefully
         if exit_flag is True:
