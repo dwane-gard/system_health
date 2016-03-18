@@ -38,6 +38,11 @@ cisco_connections = []
 exit_flag = False
 debug_flag = 0
 
+# In case not defined in config
+good_colour = '#00AA00'
+intermediate_colour = '#FFA500'
+bad_colour = '#FF0000'
+
 
 # Read the config file or create one if it does not exist
 def read_config():
@@ -950,9 +955,7 @@ except ValueError:
     print('[!] Configuration is unreadable. Review configuration file: conf in program directory and ensure the data is correct.')
 font = ImageFont.truetype('fonts/UbuntuMono-R.ttf', 26)
 font_small = ImageFont.truetype('fonts/UbuntuMono-R.ttf', 20)
-good_colour = '#00AA00'
-intermediate_colour = '#FFA500'
-bad_colour = '#FF0000'
+
 
 shape_origin = (width * .8, height * .91)
 

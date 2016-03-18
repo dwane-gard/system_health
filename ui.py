@@ -11,7 +11,6 @@ Written by Dwane Gard
 """
 
 import curses
-import curses.textpad
 from main import *
 import inspect
 import subprocess
@@ -19,6 +18,7 @@ import subprocess
 # Global variables
 exit_flag = False
 resize_flag = False
+config_change_flag = False
 debug_flag = 0
 x_cur_pos, y_cur_pos = 0, 0
 ze_lock = threading.Lock()
@@ -126,7 +126,7 @@ class box_data:
 
 class Menu:
     def __init__(self):
-        global resize_flag
+        global resize_flag, config_change_flag
 
         # Set colours to use
         curses.start_color()
@@ -146,11 +146,13 @@ class Menu:
                 # Call vim to edit the local configuration file
                 subprocess.call(['vim', 'conf'])
 
-                # Reread the configuration file
-                read_config()
+                config_change_flag = True
                 stdscr.clear()
                 curse_print('[+] Reloading Interface', curses.color_pair(1), 2, 2, stdscr)
                 stdscr.refresh()
+
+                # Reread the configuration file
+                read_config()
 
                 ze_lock.release()
             if c == ord('x'):
@@ -224,7 +226,7 @@ def curse_print(ze_string, colour_pair, x_cur, y_cur, window):
 
 
 def local_main():
-    global height, width, stdscr, y_cur_pos, x_cur_pos
+    global height, width, stdscr, y_cur_pos, x_cur_pos, resize_flag, config_change_flag
     count = 0
     server_q = Queue(maxsize=2)
     end_point_q = Queue(maxsize=2)
@@ -249,6 +251,11 @@ def local_main():
         # Create external connections and retrieve data
         server_output, cisco_connections = runserver_threaded_connections(server_q, end_point_q)
 
+        # If config has changed while loading data reload it
+        if config_change_flag is True:
+            server_output, cisco_connections = runserver_threaded_connections(server_q, end_point_q)
+            config_change_flag = False
+
         # Get local data
         createImage = CreateImage(count)
         ze_time = createImage.get_time()
@@ -263,6 +270,7 @@ def local_main():
 
         if resize_flag is True:
             curses.resizeterm(height, width)
+            resize_flag = False
 
         stdscr.erase()
         stdscr.border(0)
