@@ -147,13 +147,12 @@ class Menu:
                 subprocess.call(['vim', 'conf'])
 
                 config_change_flag = True
-                stdscr.clear()
+                stdscr.erase()
                 curse_print('[+] Reloading Interface', curses.color_pair(1), 2, 2, stdscr)
                 stdscr.refresh()
 
                 # Reread the configuration file
                 read_config()
-
                 ze_lock.release()
             if c == ord('x'):
                 # ze_lock.acquire()
@@ -240,62 +239,72 @@ def local_main():
     menu.setDaemon(True)
     menu.start()
 
+
     while True:
+        ze_breakable_loop = True
+        while ze_breakable_loop is True:
+            height, width = stdscr.getmaxyx()
 
-        height, width = stdscr.getmaxyx()
+            # Set where the cursor should start
+            y_cur_pos = 2
+            x_cur_pos = 2
 
-        # Set where the cursor should start
-        y_cur_pos = 2
-        x_cur_pos = 2
 
-        # Create external connections and retrieve data
-        server_output, cisco_connections = runserver_threaded_connections(server_q, end_point_q)
 
-        # If config has changed while loading data reload it
-        if config_change_flag is True:
-            server_output, cisco_connections = runserver_threaded_connections(server_q, end_point_q)
+            # Create external connections and retrieve data
             config_change_flag = False
+            server_output, cisco_connections = runserver_threaded_connections(server_q, end_point_q)
 
-        # Get local data
-        createImage = CreateImage(count)
-        ze_time = createImage.get_time()
-        ip_address = createImage.get_ip_address()
-        createImage.reset_system_health()
+            # Get local data
+            createImage = CreateImage(count)
+            ze_time = createImage.get_time()
+            ip_address = createImage.get_ip_address()
+            createImage.reset_system_health()
 
-        cpu = '[%s] %s c' % (createImage.cpu.device_name, createImage.cpu.temp)
-        gpu = '[%s] %s c' % (createImage.gpu.device_name, createImage.gpu.temp)
-        system_strings_to_write = [ze_time, ip_address,cpu, gpu]
+            cpu = '[%s] %s c' % (createImage.cpu.device_name, createImage.cpu.temp)
+            gpu = '[%s] %s c' % (createImage.gpu.device_name, createImage.gpu.temp)
+            system_strings_to_write = [ze_time, ip_address,cpu, gpu]
 
-        ze_lock.acquire()
+            ze_lock.acquire()
 
-        if resize_flag is True:
-            curses.resizeterm(height, width)
-            resize_flag = False
+            # If config has changed while loading restart loop
+            if config_change_flag is True:
+                if ze_lock:
+                    ze_lock.release()
+                config_change_flag = False
+                break
 
-        stdscr.erase()
-        stdscr.border(0)
-        try:
-            box_data(system_strings_to_write, 'System Health')
-            box_data(server_output, 'Servers')
-            box_data(cisco_connections, 'Endpoints')
-            Menu.print_menu()
+            if resize_flag is True:
+                if ze_lock:
+                    ze_lock.release()
+                curses.resizeterm(height, width)
+                resize_flag = False
+                break
 
-            stdscr.refresh()
-            count += 1
+            stdscr.erase()
+            stdscr.border(0)
+            try:
+                box_data(system_strings_to_write, 'System Health')
+                box_data(server_output, 'Servers')
+                box_data(cisco_connections, 'Endpoints')
+                Menu.print_menu()
 
-        # If we have an error assume the window is too small, don't think this is te right idea but working?!!?
-        except:
-            stdscr.addstr(x_cur_pos, y_cur_pos, 'Window is too small')
-        finally:
-            ze_lock.release()
+                stdscr.refresh()
+                count += 1
 
-        # Check if we want to exit, if so run commands to exit gracefully
-        if exit_flag is True:
-            curses.nocbreak()
-            stdscr.keypad(False)
-            curses.echo()
-            curses.endwin()
-            exit(0)
+            # If we have an error assume the window is too small, don't think this is te right idea but working?!!?
+            except:
+                stdscr.addstr(x_cur_pos, y_cur_pos, 'Window is too small')
+            finally:
+                ze_lock.release()
+
+            # Check if we want to exit, if so run commands to exit gracefully
+            if exit_flag is True:
+                curses.nocbreak()
+                stdscr.keypad(False)
+                curses.echo()
+                curses.endwin()
+                exit(0)
 
 if __name__ == '__main__':
     local_main()
