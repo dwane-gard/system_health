@@ -83,6 +83,8 @@ def read_config():
         cisco_config_open = False
         server_config_open = False
         for each_line in configuration_as_list:
+            if each_line.startswith('#'):
+                continue
             # Find each cisco or server device and record each line as a setting
             if each_line.startswith('cisco_device='):
                 cisco_config_open = True
@@ -102,8 +104,17 @@ def read_config():
 
             device_settings.append(each_line)
 
+            if debug_flag == 1:
+                print('[device] %s' % device)
+                print('[device_settings] %s' % device_settings)
+
             # When the '}' is found package the settings and add them to the list of devices
             if '}' in each_line:
+                if debug_flag == 1:
+                    if server_config_open:
+                        print('Ending Server %s' % device)
+                    if cisco_config_open:
+                        print('[+] Finalizing cisco device %s' % device)
                 if cisco_config_open is True:
                     cisco_devices.append(CiscoDevices(device, device_settings))
                     cisco_config_open = False
@@ -151,6 +162,9 @@ def read_config():
                   'intermediate_colour=#FFA500\n'
                   'bad_colour=#FF0000\n')
             sys.exit()
+    if debug_flag == 1:
+        print('[cisco_settings] %s' % cisco_devices)
+        print('[server_devices] %s' % server_devices)
 
 
 # holds information to draw hexagon pattern that indicates recent error history
@@ -287,7 +301,10 @@ class SystemLog:
         try:
             self.ssh = self.connection()
 
-        except:
+        except Exception:
+            if debug_flag == 1:
+                print('[!] Error connectiong to server: %s' % self.host)
+
             return
 
         # self.get_auth(self.ssh)
@@ -295,6 +312,10 @@ class SystemLog:
             self.get_current_users(self.ssh)
 
             self.close_connection(self.ssh)
+
+        if debug_flag == 1:
+            print('[+] Connections to servers')
+            print('[User@Host] %s@%s' % (self.user, self.host))
 
     class User:
         def __init__(self, user_name, pty, date, ze_time, ip):
@@ -307,6 +328,7 @@ class SystemLog:
     def connection(self):
         s = pxssh.pxssh()
         s.login(self.host, self.user, self.passwd, port=self.port, login_timeout=10)
+        # s.prompt()
         return s
 
     # check who last accesed server (prety useless think it will always be this script as it reconnects constantly)
@@ -314,7 +336,7 @@ class SystemLog:
         connection.sendline('cat /var/log/lastlog')
         connection.prompt()
         last_connection_ip = connection.before
-        ze_derp = last_connection_ip
+        ze_derp = last_connection_ip.strip()
         if debug_flag == 1:
             print(ze_derp)
 
@@ -330,6 +352,8 @@ class SystemLog:
             ze_split = (each_output.split(b' '))
             user_name, pty, date, ze_time, ip = [x for x in ze_split if x != b'']
             self.users.append(self.User(user_name, pty, date, ze_time, ip))
+
+
 
     # Future !! Get log of last update done on server
     def get_apt(self, connection):
