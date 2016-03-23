@@ -245,7 +245,6 @@ def local_main():
     menu.setDaemon(True)
     menu.start()
 
-
     while True:
         ze_breakable_loop = True
         while ze_breakable_loop is True:
@@ -287,13 +286,13 @@ def local_main():
                 resize_flag = False
                 break
 
-        stdscr.erase()
-        stdscr.border(0)
-        try:
-            BoxData(system_strings_to_write, 'System Health')
-            BoxData(server_output, 'Servers')
-            BoxData(cisco_connections, 'Endpoints')
-            Menu.print_menu()
+            stdscr.erase()
+            stdscr.border(0)
+            try:
+                BoxData(system_strings_to_write, 'System Health')
+                BoxData(server_output, 'Servers')
+                BoxData(cisco_connections, 'Endpoints')
+                Menu.print_menu()
 
                 stdscr.refresh()
                 count += 1
