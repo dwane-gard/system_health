@@ -39,7 +39,7 @@ signal.signal(signal.SIGINT, signal_handler)
 
 
 # Class to format data and print out the ui etc
-class box_data:
+class BoxData:
     def __init__(self, data_set, title):
         global x_cur_pos, y_cur_pos
 
@@ -54,7 +54,8 @@ class box_data:
         curses.use_default_colors()
 
         # Add title
-        stdscr.addstr(x_cur_pos, y_cur_pos, self.title_whitespace + self.title + self.title_whitespace, curses.color_pair(1))
+        stdscr.addstr(x_cur_pos, y_cur_pos, self.title_whitespace + self.title + self.title_whitespace,
+                      curses.color_pair(1))
         x_cur_pos += 1
 
         # Check the data set for the data type and make a decision on how to format it with that data
@@ -81,8 +82,9 @@ class box_data:
                     # Check if the data set is consistent with hosts and if so print them
                     if each_member[0] == 'host':
                         # Print data with a highlighted line
-                        stdscr.addstr(x_cur_pos, y_cur_pos,  self.get_white_space(str(each_member[1])) + (str(each_member[1])) +
-                                      self.get_white_space(str(each_member[1])), curses.color_pair(2))
+                        stdscr.addstr(x_cur_pos, y_cur_pos,  self.get_white_space(str(each_member[1])) +
+                                      (str(each_member[1])) + self.get_white_space(str(each_member[1])),
+                                      curses.color_pair(2))
                         x_cur_pos += 1
 
                     # Check if the data set is consistent with users and if so print them
@@ -97,8 +99,10 @@ class box_data:
                                     try:
                                         # Put each user inline with it's data
                                         stdscr.addstr(x_cur_pos, y_cur_pos, (str(each_member_t3.user_name)))
-                                        stdscr.addstr(x_cur_pos, y_cur_pos+len(each_member_t3.user_name)+3, (str(each_member_t3.pty)))
-                                        stdscr.addstr(x_cur_pos, y_cur_pos+len(each_member_t3.user_name)+len(each_member_t3.pty) + 6, (str(each_member_t3.ip)))
+                                        stdscr.addstr(x_cur_pos, y_cur_pos+len(each_member_t3.user_name) +
+                                                      3, (str(each_member_t3.pty)))
+                                        stdscr.addstr(x_cur_pos, y_cur_pos+len(each_member_t3.user_name) +
+                                                      len(each_member_t3.pty) + 6, (str(each_member_t3.ip)))
                                         x_cur_pos += 1
                                     except:
                                         pass
@@ -120,9 +124,11 @@ class box_data:
         return
 
     # Find the amount of white space on either end of a string for highlighting the entire line
-    def get_white_space(self, string):
+    @staticmethod
+    def get_white_space(string):
         white_space_string = ' '*(int((width/2)-int(len(string)/2))-2)
         return white_space_string
+
 
 class Menu:
     def __init__(self):
@@ -165,14 +171,14 @@ class Menu:
     @staticmethod
     def print_menu():
         menu_cur = 2
-        menu_cur = curse_print('z ', curses.color_pair(1),menu_cur, height-4, stdscr)
-        menu_cur = curse_print("Edit Configuration", curses.color_pair(2),menu_cur, height-4, stdscr)
-        menu_cur = curse_print(' | ', curses.color_pair(2),menu_cur, height-4, stdscr)
-        menu_cur = curse_print('x ', curses.color_pair(1),menu_cur, height-4, stdscr)
-        menu_cur = curse_print("Go on with your life", curses.color_pair(2),menu_cur, height-4, stdscr)
-        menu_cur = curse_print(' | ', curses.color_pair(2),menu_cur, height-4, stdscr)
-        menu_cur = curse_print('c ', curses.color_pair(1),menu_cur, height-4, stdscr)
-        menu_cur = curse_print("Go on with your life", curses.color_pair(2),menu_cur, height-4, stdscr)
+        menu_cur = curse_print('z ', curses.color_pair(1), menu_cur, height-4, stdscr)
+        menu_cur = curse_print("Edit Configuration", curses.color_pair(2), menu_cur, height-4, stdscr)
+        menu_cur = curse_print(' | ', curses.color_pair(2), menu_cur, height-4, stdscr)
+        menu_cur = curse_print('x ', curses.color_pair(1), menu_cur, height-4, stdscr)
+        menu_cur = curse_print("Go on with your life", curses.color_pair(2), menu_cur, height-4, stdscr)
+        menu_cur = curse_print(' | ', curses.color_pair(2), menu_cur, height-4, stdscr)
+        menu_cur = curse_print('c ', curses.color_pair(1), menu_cur, height-4, stdscr)
+        menu_cur = curse_print("Go on with your life", curses.color_pair(2), menu_cur, height-4, stdscr)
         return menu_cur
 
 
@@ -187,7 +193,7 @@ class DialogBox:
         self.dialog_height_end = int(self.dialog_origin[0] + self.req_collums/2)
         self.dialog_width_start = int(self.dialog_origin[1] - self.req_lines/2)
         self.dialog_width_end = int(self.dialog_origin[1] + self.req_lines/2)
-        self.text_start = self.dialog_height_start-2, self.dialog_width_start -2
+        self.text_start = self.dialog_height_start-2, self.dialog_width_start - 2
         self.window = curses.newwin(self.req_lines, self.req_collums, self.dialog_height_start, self.dialog_width_start)
         self.window.border()
         self.y_cur = 2
@@ -257,7 +263,7 @@ def local_main():
 
         cpu = '[%s] %s c' % (createImage.cpu.device_name, createImage.cpu.temp)
         gpu = '[%s] %s c' % (createImage.gpu.device_name, createImage.gpu.temp)
-        system_strings_to_write = [ze_time, ip_address,cpu, gpu]
+        system_strings_to_write = [ze_time, ip_address, cpu, gpu]
 
         ze_lock.acquire()
 
@@ -267,9 +273,9 @@ def local_main():
         stdscr.erase()
         stdscr.border(0)
         try:
-            box_data(system_strings_to_write, 'System Health')
-            box_data(server_output, 'Servers')
-            box_data(cisco_connections, 'Endpoints')
+            BoxData(system_strings_to_write, 'System Health')
+            BoxData(server_output, 'Servers')
+            BoxData(cisco_connections, 'Endpoints')
             Menu.print_menu()
 
             stdscr.refresh()
