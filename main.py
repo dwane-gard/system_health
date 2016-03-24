@@ -27,6 +27,7 @@ from threading import *
 from queue import Queue
 import threading
 import signal
+from urllib.request import urlopen
 
 # Global variables
 cisco_devices = []
@@ -684,6 +685,7 @@ class CreateImage:
 
         self.ze_time = None
         self.ip_address = None
+        self.pub_ip_address = None
         self.gpu = None
         self.cpu = None
 
@@ -735,7 +737,7 @@ class CreateImage:
 
         # Get server and endpoint data from remote systems
         runserver_threaded_connections(server_q, end_point_q)
-
+        self.get_public_ip_address()
         self.get_ip_address()
         self.get_time()
         self.get_font_size()
@@ -774,6 +776,16 @@ class CreateImage:
 
         except:
             self.ip_address = "[IP] No Connection", intermediate_colour
+
+    def get_public_ip_address(self):
+        try:
+            pub_ip_address = (urlopen('http://ip.42.pl/short').read()).decode('utf-8')
+            pub_ip_address = '[Public IP] %s' % pub_ip_address
+            self.pub_ip_address = pub_ip_address, good_colour
+        except:
+            pub_ip_address = "[Public IP] No Connection"
+            self.pub_ip_address = pub_ip_address, intermediate_colour
+        return pub_ip_address
 
     def get_font_size(self):
         self.cpu_size = self.draw.textsize(self.cpu.temp, font)[0]

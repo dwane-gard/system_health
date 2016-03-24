@@ -64,6 +64,10 @@ class BoxData:
                 stdscr.addstr(x_cur_pos, y_cur_pos, each_string)
                 x_cur_pos += 1
 
+            elif type(each_string) == bytes:
+                stdscr.addstr(x_cur_pos, y_cur_pos, each_string)
+                x_cur_pos += 1
+
             # Don't think this choice is ever made?
             elif type(each_string) == list:
                 for each_string_t2 in each_string:
@@ -264,11 +268,13 @@ def local_main():
             createImage = CreateImage(count)
             ze_time = createImage.get_time()
             ip_address = createImage.get_ip_address()
+            public_ip_address = createImage.get_public_ip_address()
+
             createImage.reset_system_health()
 
             cpu = '[%s] %s c' % (createImage.cpu.device_name, createImage.cpu.temp)
             gpu = '[%s] %s c' % (createImage.gpu.device_name, createImage.gpu.temp)
-            system_strings_to_write = [ze_time, ip_address,cpu, gpu]
+            system_strings_to_write = [ze_time, ip_address, public_ip_address, cpu, gpu]
 
             ze_lock.acquire()
 
