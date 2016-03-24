@@ -40,7 +40,7 @@ signal.signal(signal.SIGINT, signal_handler)
 
 # Class to format data and print out the ui etc
 class BoxData:
-    def __init__(self, data_set, title):
+    def __init__(self, data_set, title, alignment=1):
         global x_cur_pos, y_cur_pos
 
         self.title = title
@@ -58,74 +58,95 @@ class BoxData:
                       curses.color_pair(1))
         x_cur_pos += 1
 
-        # Check the data set for the data type and make a decision on how to format it with that data
-        for each_string in data_set:
-            if type(each_string) == str:
-                stdscr.addstr(x_cur_pos, y_cur_pos, each_string)
-                x_cur_pos += 1
+        # if alignment == right
+        if alignment == 2:
+            for each_string in data_set:
+                if type(each_string) == str:
+                    left_string, right_string = each_string.rsplit(']', 1)
+                    right_y_cur_pos = width - len(right_string) - 4
+                    stdscr.addstr(x_cur_pos, y_cur_pos, left_string + ']')
+                    stdscr.addstr(x_cur_pos, right_y_cur_pos, right_string)
+                    x_cur_pos += 1
 
-            elif type(each_string) == bytes:
-                stdscr.addstr(x_cur_pos, y_cur_pos, each_string)
-                x_cur_pos += 1
+                elif type(each_string) == bytes:
+                    right_y_cur_pos = width - len(each_string)
+                    stdscr.addstr(x_cur_pos, right_y_cur_pos, each_string)
+                    x_cur_pos += 1
+                else:
+                    # Data set is incompatible with right alignment
+                    alignment = 1
 
-            # Don't think this choice is ever made?
-            elif type(each_string) == list:
-                for each_string_t2 in each_string:
-                    if type(each_string_t2) == str:
-                        stdscr.addstr(x_cur_pos, y_cur_pos, each_string_t2)
-                        x_cur_pos += 1
-                    if type(each_string_t2) == list:
-                        for each_string_t3 in each_string_t2:
-                            if type(each_string_t3) == str:
-                                stdscr.addstr(x_cur_pos, y_cur_pos, each_string_t3)
+        # If alignment == left
+        if alignment == 1:
+            # Check the data set for the data type and make a decision on how to format it with that data
+            for each_string in data_set:
+                if type(each_string) == str:
+                    stdscr.addstr(x_cur_pos, y_cur_pos, each_string)
+                    x_cur_pos += 1
+
+                elif type(each_string) == bytes:
+                    stdscr.addstr(x_cur_pos, y_cur_pos, each_string)
+                    x_cur_pos += 1
+
+                # Don't think this choice is ever made?
+                elif type(each_string) == list:
+                    for each_string_t2 in each_string:
+                        if type(each_string_t2) == str:
+                            stdscr.addstr(x_cur_pos, y_cur_pos, each_string_t2)
+                            x_cur_pos += 1
+                        if type(each_string_t2) == list:
+                            for each_string_t3 in each_string_t2:
+                                if type(each_string_t3) == str:
+                                    stdscr.addstr(x_cur_pos, y_cur_pos, each_string_t3)
+                                    x_cur_pos += 1
+
+                else:
+                    for each_member in inspect.getmembers(each_string):
+
+                        # Check if the data set is consistent with hosts and if so print them
+                        if each_member[0] == 'host':
+                            # Print data with a highlighted line
+                            stdscr.addstr(x_cur_pos, y_cur_pos,  self.get_white_space(str(each_member[1])) +
+                                          (str(each_member[1])) + self.get_white_space(str(each_member[1])),
+                                          curses.color_pair(2))
+                            x_cur_pos += 1
+
+                        # Check if the data set is consistent with users and if so print them
+                        elif each_member[0] == 'users':
+                            for each_member_t2 in each_member:
+
+                                # If there is data in the entry use it
+                                if len(each_member_t2) > 0:
+
+                                    # Break out the user data from the users list
+                                    for each_member_t3 in each_member_t2:
+                                        try:
+                                            # Put each user inline with it's data
+                                            stdscr.addstr(x_cur_pos, y_cur_pos, (str(each_member_t3.user_name)))
+                                            stdscr.addstr(x_cur_pos, y_cur_pos+len(each_member_t3.user_name) +
+                                                          3, (str(each_member_t3.pty)))
+                                            stdscr.addstr(x_cur_pos, y_cur_pos+len(each_member_t3.user_name) +
+                                                          len(each_member_t3.pty) + 6, (str(each_member_t3.ip)))
+                                            x_cur_pos += 1
+                                        except:
+                                            pass
+                                else:
+                                    # If data doesn't exist assume there is no connection
+                                    stdscr.addstr(x_cur_pos, y_cur_pos, "Can't connect to server", curses.color_pair(3))
+                                    x_cur_pos += 1
+
+                        # Check if the data set is consistent with endpoint connection and if so print them
+                        elif each_member[0] == 'ze_output':
+
+                            # If there is 'Dead' in the string assume it is a dead connection and highlight it as so
+                            if 'Dead' in each_member[1]:
+                                stdscr.addstr(x_cur_pos, y_cur_pos, (str(each_member[1])), curses.color_pair(3))
                                 x_cur_pos += 1
-
-            else:
-                for each_member in inspect.getmembers(each_string):
-
-                    # Check if the data set is consistent with hosts and if so print them
-                    if each_member[0] == 'host':
-                        # Print data with a highlighted line
-                        stdscr.addstr(x_cur_pos, y_cur_pos,  self.get_white_space(str(each_member[1])) +
-                                      (str(each_member[1])) + self.get_white_space(str(each_member[1])),
-                                      curses.color_pair(2))
-                        x_cur_pos += 1
-
-                    # Check if the data set is consistent with users and if so print them
-                    elif each_member[0] == 'users':
-                        for each_member_t2 in each_member:
-
-                            # If there is data in the entry use it
-                            if len(each_member_t2) > 0:
-
-                                # Break out the user data from the users list
-                                for each_member_t3 in each_member_t2:
-                                    try:
-                                        # Put each user inline with it's data
-                                        stdscr.addstr(x_cur_pos, y_cur_pos, (str(each_member_t3.user_name)))
-                                        stdscr.addstr(x_cur_pos, y_cur_pos+len(each_member_t3.user_name) +
-                                                      3, (str(each_member_t3.pty)))
-                                        stdscr.addstr(x_cur_pos, y_cur_pos+len(each_member_t3.user_name) +
-                                                      len(each_member_t3.pty) + 6, (str(each_member_t3.ip)))
-                                        x_cur_pos += 1
-                                    except:
-                                        pass
                             else:
-                                # If data doesn't exist assume there is no connection
-                                stdscr.addstr(x_cur_pos, y_cur_pos, "Can't connect to server", curses.color_pair(3))
+                                stdscr.addstr(x_cur_pos, y_cur_pos, (str(each_member[1])))
                                 x_cur_pos += 1
-
-                    # Check if the data set is consistent with endpoint connection and if so print them
-                    elif each_member[0] == 'ze_output':
-
-                        # If there is 'Dead' in the string assume it is a dead connection and highlight it as so
-                        if 'Dead' in each_member[1]:
-                            stdscr.addstr(x_cur_pos, y_cur_pos, (str(each_member[1])), curses.color_pair(3))
-                            x_cur_pos += 1
-                        else:
-                            stdscr.addstr(x_cur_pos, y_cur_pos, (str(each_member[1])))
-                            x_cur_pos += 1
-        return
+            else:
+                pass
 
     # Find the amount of white space on either end of a string for highlighting the entire line
     @staticmethod
@@ -258,8 +279,6 @@ def local_main():
             y_cur_pos = 2
             x_cur_pos = 2
 
-
-
             # Create external connections and retrieve data
             config_change_flag = False
             server_output, cisco_connections = runserver_threaded_connections(server_q, end_point_q)
@@ -294,20 +313,20 @@ def local_main():
 
             stdscr.erase()
             stdscr.border(0)
-            try:
-                BoxData(system_strings_to_write, 'System Health')
-                BoxData(server_output, 'Servers')
-                BoxData(cisco_connections, 'Endpoints')
-                Menu.print_menu()
+            # try:
+            BoxData(system_strings_to_write, 'System Health', 2)
+            BoxData(server_output, 'Servers')
+            BoxData(cisco_connections, 'Endpoints')
+            Menu.print_menu()
 
-                stdscr.refresh()
-                count += 1
+            stdscr.refresh()
+            count += 1
 
             # If we have an error assume the window is too small, don't think this is te right idea but working?!!?
-            except:
-                stdscr.addstr(x_cur_pos, y_cur_pos, 'Window is too small')
-            finally:
-                ze_lock.release()
+            # except:
+            #     stdscr.addstr(x_cur_pos, y_cur_pos, 'Window is too small')
+            # finally:
+            ze_lock.release()
 
             # Check if we want to exit, if so run commands to exit gracefully
             if exit_flag is True:
