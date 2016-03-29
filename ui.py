@@ -1,5 +1,7 @@
 #!/usr/bin/python3
-
+from threading import Thread, Lock
+import signal
+from queue import Queue
 """
 Simple script that displays system, server and endpoint data.
 Requires:
@@ -11,7 +13,9 @@ Written by Dwane Gard
 """
 
 import curses
-from main import *
+from start import runserver_threaded_connections, read_config
+from DrawImage import DrawImage
+
 import inspect
 import subprocess
 
@@ -21,7 +25,7 @@ resize_flag = False
 config_change_flag = False
 debug_flag = 0
 x_cur_pos, y_cur_pos = 0, 0
-ze_lock = threading.Lock()
+ze_lock = Lock()
 
 
 # Set exit flag to exit checked when the time is right to exit gracefully
@@ -284,7 +288,7 @@ def local_main():
             server_output, cisco_connections = runserver_threaded_connections(server_q, end_point_q)
 
             # Get local data
-            createImage = CreateImage(count)
+            createImage = DrawImage(count, cisco_connections, server_output)
             ze_time = createImage.get_time()
             ip_address = createImage.get_ip_address()
             public_ip_address = createImage.get_public_ip_address()
