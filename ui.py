@@ -1,7 +1,6 @@
 #!/usr/bin/python3
-from threading import Thread, Lock
-import signal
-from queue import Queue
+
+
 """
 Simple script that displays system, server and endpoint data.
 Requires:
@@ -12,6 +11,11 @@ Requires:
 Written by Dwane Gard
 """
 
+from __future__ import print_function, division, absolute_import
+from builtins import *
+from threading import Thread, Lock
+import signal
+from queue import Queue
 import curses
 from start import runserver_threaded_connections, read_config
 from DrawImage import DrawImage
