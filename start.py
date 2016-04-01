@@ -41,6 +41,7 @@ good_colour = '#00AA00'
 intermediate_colour = '#FFA500'
 bad_colour = '#FF0000'
 
+
 def read_config():
     global cisco_devices, server_devices
     global width

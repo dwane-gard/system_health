@@ -6,6 +6,7 @@ See last function for how to use.
 Written by Dwane Gard
 '''
 
+
 class ReadConfig:
     def __init__(self, rules, debug_flag=0, conf_string=None, conf_file_name=None):
         self.debug_flag = debug_flag
