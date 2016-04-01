@@ -24,6 +24,7 @@ import signal
 
 from ExternalConnection import CiscoConnections, LinuxConnection
 from DrawImage import DrawImage, ShapeAlerts
+import ReadConfig
 
 # Global variables
 cisco_devices = []
@@ -40,8 +41,6 @@ good_colour = '#00AA00'
 intermediate_colour = '#FFA500'
 bad_colour = '#FF0000'
 
-
-# Read the config file or create one if it does not exist
 def read_config():
     global cisco_devices, server_devices
     global width
@@ -50,141 +49,61 @@ def read_config():
     global intermediate_colour
     global bad_colour
 
-    device = ''
-    device_settings = []
     cisco_devices = []
     server_devices = []
 
-    # Check if conf file exist, if not create it
-    if not os.path.exists('conf'):
-        open('conf', 'w').write('# Configuration file for dynamic_background_generator\n'
-                                '# Written by Dwane Gard\n\n'
-                                'cisco_device=\t{\n'
-                                '\tpassword=\n'
-                                '\tuser=\n'
-                                '\thost=\n'
-                                '\tport=\n'
-                                '}\n'
-                                'server-device=\t{\n'
-                                '\tpassword=\n'
-                                '\tuser=\n'
-                                '\thost=\n'
-                                '\tport=\n'
-                                '}\n'
-                                'height=\n'
-                                'width=\n'
-                                'good_colour=#00AA00\n'
-                                'intermediate_colour=#FFA500\n'
-                                'bad_colour=#FF0000\n')
+    # rules = [good_colour.__name__, intermediate_colour.__name__, bad_colour.__name__
+    #          width.__name__, height.__name__,]
+    rules = ['good_colour', 'intermediate_colour', 'bad_colour', 'width', 'height',
+             'cisco_device{password,user,host}', 'server_device{password,user,host,port}']
 
-    # Open and read the conf file
-    with open('conf', 'r') as configuration:
-        configuration = configuration.read()
-        configuration_as_list = configuration.split("\n")
+    readConfig = ReadConfig.ReadConfig(rules, debug_flag=debug_flag, conf_file_name='conf')
+    single_line_rules, multi_line_rules = readConfig.output()
 
-        cisco_config_open = False
-        server_config_open = False
-        for each_line in configuration_as_list:
-            if each_line.startswith('#'):
-                continue
-            # Find each cisco or server device and record each line as a setting
-            if each_line.startswith('cisco_device='):
-                cisco_config_open = True
-                device = (each_line.split('=')[1])
-                try:
-                    device = device.split('}')[0]
-                except:
-                    pass
+    for each_setting in single_line_rules:
+        if each_setting.rule == 'width':
+            width = int(each_setting.conf)
+        elif each_setting.rule == 'height':
+            height = int(each_setting.conf)
+        elif each_setting.rule == 'good_colour':
+            good_colour = each_setting.conf
+        elif each_setting.rule == 'intermediate_colour':
+            intermediate_colour = each_setting.conf
 
-            if each_line.startswith('server_device='):
-                server_config_open = True
-                device = (each_line.split('=')[1])
-                try:
-                    device = device.split('}')[0]
-                except:
-                    pass
+    for each_setting in multi_line_rules:
+        working_host = None
+        working_password = None
+        working_user = None
 
-            device_settings.append(each_line)
+        if each_setting.rule == 'server_device':
+            for each_subRule in each_setting.subRules:
+                if each_subRule.rule == 'password':
+                    working_password = each_subRule.conf
+                elif each_subRule.rule == 'user':
+                    working_user = each_subRule.conf
+                elif each_subRule.rule == 'host':
+                    working_host = each_subRule.conf
+                elif each_subRule.rule == 'port':
+                    working_port = each_subRule.conf
+            server_devices.append(ServerDevices(each_setting.rule_label, working_user, working_password, working_host, working_port))
 
-            if debug_flag == 1:
-                print('[device] %s' % device)
-                print('[device_settings] %s' % device_settings)
-
-            # When the '}' is found package the settings and add them to the list of devices
-            if '}' in each_line:
-                if debug_flag == 1:
-                    if server_config_open:
-                        print('Ending Server %s' % device)
-                    if cisco_config_open:
-                        print('[+] Finalizing cisco device %s' % device)
-                if cisco_config_open is True:
-                    cisco_devices.append(CiscoDevices(device, device_settings))
-                    cisco_config_open = False
-                    del device_settings[:]
-                    # device_settings.clear()
-
-                elif server_config_open is True:
-                    server_devices.append(ServerDevices(device, device_settings))
-                    server_config_open = False
-                    del device_settings[:]
-                    # device_settings.clear()
-
-            # Find the other settings and apply them where necessary
-            elif each_line.startswith('height='):
-                height = each_line.split('=')[1]
-                height = int(height)
-            elif each_line.startswith('width='):
-                width = each_line.split('=')[1]
-                width = int(width)
-            elif each_line.startswith('good_colour='):
-                good_colour = each_line.split('=')[1]
-            elif each_line.startswith('intermediate_colour='):
-                intermediate_colour = each_line.split('=')[1]
-            elif each_line.startswith('bad_colour='):
-                bad_colour = each_line.split('=')[1]
-
-        if device == '':
-            print('[!] Configuration File not configured!\n'
-                  'Creating File "conf" in script directory.\n'
-                  'Populate with:\n'
-                  'cisco_device=\t{\n'
-                  '\tpassword=\n'
-                  '\tuser=\n'
-                  '\thost=\n'
-                  '}\n'
-                  'server-device=\t{\n'
-                  '\tpassword=\n'
-                  '\tuser=\n'
-                  '\thost=\n'
-                  '\tport=\n'
-                  '}\n'
-                  'height=\n'
-                  'width=\n'
-                  'good_colour=#00AA00\n'
-                  'intermediate_colour=#FFA500\n'
-                  'bad_colour=#FF0000\n')
-            sys.exit()
-    if debug_flag == 1:
-        print('[cisco_settings] %s' % cisco_devices)
-        print('[server_devices] %s' % server_devices)
-
-
+        elif each_setting.rule == 'cisco_device':
+            for each_subRule in each_setting.subRules:
+                if each_subRule.rule == 'password':
+                    working_password = each_subRule.conf
+                elif each_subRule.rule == 'user':
+                    working_user = each_subRule.conf
+                elif each_subRule.rule == 'host':
+                    working_host = each_subRule.conf
+            cisco_devices.append(CiscoDevices(each_setting.rule_label, working_user, working_password, working_host))
 
 
 # Store credentials for the cisco devices
 class CiscoDevices:
-    def __init__(self, name, settings):
-        for each_setting in settings:
-            if 'user' in each_setting:
-                self.user = each_setting.strip()
-                self.user = self.user.split('=')[1]
-            if 'password' in each_setting:
-                self.passwd = each_setting.strip()
-                self.passwd = self.passwd.split('=')[1]
-            if 'host' in each_setting:
-                self.ip = each_setting.strip()
-                self.ip = self.ip.split('=')[1]
-
+    def __init__(self, name, user, password, host):
+        self.user = user
+        self.ip = host
+        self.passwd = password
         self.name = name
 
     def output(self):
@@ -193,20 +112,11 @@ class CiscoDevices:
 
 # For storing server information
 class ServerDevices:
-    def __init__(self, name, settings):
-        for each_setting in settings:
-            if 'user' in each_setting:
-                self.user = each_setting.strip()
-                self.user = self.user.split('=')[1]
-            if 'password' in each_setting:
-                self.passwd = each_setting.strip()
-                self.passwd = self.passwd.split('=')[1]
-            if 'host' in each_setting:
-                self.ip = each_setting.strip()
-                self.ip = self.ip.split('=')[1]
-            if 'port' in each_setting:
-                self.port = each_setting.strip()
-                self.port = self.port.split('=')[1]
+    def __init__(self, name, user, password, host, port):
+        self.ip = host
+        self.user = user
+        self.port = port
+        self.passwd = password
 
         self.name = name
 
@@ -221,7 +131,6 @@ def signal_handler(signal, frame):
 
     print('[!!!] Exiting gracefully')
     exit_flag = True
-
 
 
 # Add a count on how manny loops the script has run on the bottom of the screen
