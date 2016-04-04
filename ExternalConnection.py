@@ -1,5 +1,8 @@
 import pexpect
 from pexpect import pxssh
+import re
+
+debug_flag = 0
 
 
 # Gets DSL info from cisco 877 or 887
@@ -9,6 +12,7 @@ class CiscoConnections:
         self.user = user
         self.passwd = passwd
         self.ze_output = ""
+
         self.debug_flag = debug_flag
         self.status_colour = good_colour
         self.bad_colour = bad_colour
@@ -19,11 +23,12 @@ class CiscoConnections:
 
             self.version = self.check_version(self.ssh)
             self.status, self.download, self.upload, self.crc = self.check_dsl(self.ssh, self.version)
+            self.dsl_uptime = self.get_dsl_uptime(self.ssh)
             self.output()
             self.close_connection(self.ssh)
 
         except:
-            self.status, self.download, self.upload, self.crc = "Dead", '0', '0', '0'
+            self.status, self.download, self.upload, self.crc, self.dsl_uptime = "Dead", '0', '0', '0', '0'
             self.status_colour = bad_colour
             self.output()
 
@@ -40,7 +45,9 @@ class CiscoConnections:
         self.crc = self.crc.strip()
         self.crc = '[Errors] ' + self.crc
 
-        self.ze_output = " | ".join([self.status, self.download, self.upload, self.crc])
+        self.dsl_uptime = '[DSL Uptime] %s' % self.dsl_uptime
+
+        self.ze_output = " | ".join([self.status, self.download, self.upload, self.crc, self.dsl_uptime])
         if self.debug_flag == 1:
             print('[ze_output] ' + self.ze_output)
 
@@ -73,6 +80,32 @@ class CiscoConnections:
                 version = 'c880'
                 return version
         # need to add code hear to catch if the version is incompatible with the script
+
+
+    def get_dsl_uptime(self, ssh):
+        ssh.sendline('sh caller')
+        output = ''
+        while True:
+            output = ssh.readline()
+            output = output.decode('UTF-8')
+            if 'PPPoATM'in output:
+                # Split at 2 or more spaces
+                output = (re.split(r'\s{2,}', output))[4]
+                break
+
+            elif 'PPPoE' in output:
+                # Split at 2 or more spaces
+                output = (re.split(r'\s{2,}', output))[4]
+                break
+
+        if debug_flag == 1:
+            print(output)
+
+        self.dsl_uptime = output
+        return output
+
+
+
 
     # Get information from c870 or c880 platform routers
     def check_dsl(self, ssh, version):
@@ -107,7 +140,7 @@ class CiscoConnections:
                 break
             elif each_line.startswith('LOM Monitoring '):
                 break
-        ssh.sendline('exit')
+
         return dsl_output
 
     def close_connection(self, connection):
@@ -191,3 +224,10 @@ class LinuxConnection:
     def close_connection(self, connection):
         connection.sendline('exit')
         connection.close()
+
+if __name__ == '__main__':
+    debug_flag = 1
+    import getpass
+    host = input('host name please: ')
+    password = getpass.getpass()
+    ciscoConnection = CiscoConnections(host, 'Dwane', password)

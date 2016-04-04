@@ -17,6 +17,7 @@ from threading import Thread, Lock
 import signal
 from queue import Queue
 import curses
+
 from Basic import runserver_threaded_connections, read_config
 from SystemInformation import LocalData
 
@@ -324,7 +325,10 @@ def main():
 
             stdscr.erase()
             stdscr.border(0)
-            # try:
+
+            # Sort Cisco connections to ensure they stay in the same order
+            cisco_connections.sort(key=lambda x: x.host)
+
             BoxData(system_strings_to_write, 'System Health', 2)
             BoxData(server_output, 'Servers')
             BoxData(cisco_connections, 'Endpoints')
@@ -333,10 +337,6 @@ def main():
             stdscr.refresh()
             count += 1
 
-            # If we have an error assume the window is too small, don't think this is te right idea but working?!!?
-            # except:
-            #     stdscr.addstr(x_cur_pos, y_cur_pos, 'Window is too small')
-            # finally:
             ze_lock.release()
 
             # Check if we want to exit, if so run commands to exit gracefully
