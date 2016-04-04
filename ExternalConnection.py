@@ -27,7 +27,7 @@ class CiscoConnections:
             self.close_connection(self.ssh)
 
         except:
-            self.status, self.download, self.upload, self.crc = "Dead", '0', '0', '0'
+            self.status, self.download, self.upload, self.crc, self.dsl_uptime = "Dead", '0', '0', '0', '0'
             self.status_colour = bad_colour
             self.output()
 
