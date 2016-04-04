@@ -337,10 +337,6 @@ def main():
             stdscr.refresh()
             count += 1
 
-            # If we have an error assume the window is too small, don't think this is te right idea but working?!!?
-            # except:
-            #     stdscr.addstr(x_cur_pos, y_cur_pos, 'Window is too small')
-            # finally:
             ze_lock.release()
 
             # Check if we want to exit, if so run commands to exit gracefully
