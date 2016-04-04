@@ -28,8 +28,10 @@ exit_flag = False
 resize_flag = False
 config_change_flag = False
 debug_flag = 0
-x_cur_pos, y_cur_pos = 0, 0
+
 ze_lock = Lock()
+
+width, height, good_colour, intermediate_colour, bad_colour, cisco_devices, server_devices = read_config()
 
 
 # Set exit flag to exit checked when the time is right to exit gracefully
@@ -263,7 +265,7 @@ def curse_print(ze_string, colour_pair, x_cur, y_cur, window):
     return x_cur
 
 
-def local_main():
+def main():
     global height, width, stdscr, y_cur_pos, x_cur_pos, resize_flag, config_change_flag
     count = 0
     server_q = Queue(maxsize=2)
@@ -345,4 +347,4 @@ def local_main():
                 exit(0)
 
 if __name__ == '__main__':
-    local_main()
+    main()

@@ -25,6 +25,7 @@ import signal
 from ExternalConnection import CiscoConnections, LinuxConnection
 from DrawImage import DrawImage, ShapeAlerts
 import ReadConfig
+debug_flag = 0
 
 # Global variables
 cisco_devices = []
@@ -70,6 +71,8 @@ def read_config():
             good_colour = each_setting.conf
         elif each_setting.rule == 'intermediate_colour':
             intermediate_colour = each_setting.conf
+        elif each_setting.rule == 'bad_colour':
+            bad_colour = each_setting.conf
 
     for each_setting in multi_line_rules:
         working_host = None
@@ -126,6 +129,7 @@ class ServerDevices:
         return self.ip, self.user, self.passwd
 
 
+<<<<<<< Updated upstream:start.py
 # Set exit flag to exit checked when the time is right to exit gracefully
 def signal_handler(signal, frame):
     global exit_flag
@@ -139,6 +143,8 @@ def add_count(draw, count):
     draw.text((width/2, height-80), str(count), font=font, fill='#00AA00')
 
 
+=======
+>>>>>>> Stashed changes:Basic.py
 # Manages server connection threads
 def server_con(q, local_server_output):
     while True:
