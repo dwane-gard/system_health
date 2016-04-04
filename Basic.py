@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 """
-Simple script that creates and applies a background with system information data.
+Holds classes that do not fall into other categories used by other parts of the program.
 Requires:
     Python3.4 or Python2.7(some issues)
     PIL - Python Imaging Library
@@ -23,24 +23,8 @@ import signal
 
 
 from ExternalConnection import CiscoConnections, LinuxConnection
-from DrawImage import DrawImage, ShapeAlerts
 import ReadConfig
 debug_flag = 0
-
-# Global variables
-cisco_devices = []
-server_devices = []
-server_output = []
-cisco_connections = []
-
-# Raised for graceful exit
-exit_flag = False
-debug_flag = 0
-
-# In case not defined in config
-good_colour = '#00AA00'
-intermediate_colour = '#FFA500'
-bad_colour = '#FF0000'
 
 
 def read_config():
@@ -100,6 +84,7 @@ def read_config():
                 elif each_subRule.rule == 'host':
                     working_host = each_subRule.conf
             cisco_devices.append(CiscoDevices(each_setting.rule_label, working_user, working_password, working_host))
+    return width, height, good_colour, intermediate_colour, bad_colour, cisco_devices, server_devices
 
 
 # Store credentials for the cisco devices
@@ -129,7 +114,7 @@ class ServerDevices:
         return self.ip, self.user, self.passwd
 
 
-<<<<<<< Updated upstream:start.py
+
 # Set exit flag to exit checked when the time is right to exit gracefully
 def signal_handler(signal, frame):
     global exit_flag
@@ -143,8 +128,6 @@ def add_count(draw, count):
     draw.text((width/2, height-80), str(count), font=font, fill='#00AA00')
 
 
-=======
->>>>>>> Stashed changes:Basic.py
 # Manages server connection threads
 def server_con(q, local_server_output):
     while True:
@@ -168,7 +151,7 @@ def end_point_con(q, local_ssh_connections):
         q.task_done()
 
 
-def runserver_threaded_connections(server_q, end_point_q):
+def runserver_threaded_connections(server_q, end_point_q, debug_flag):
     global cisco_connections
     global server_output
 
@@ -218,57 +201,7 @@ def runserver_threaded_connections(server_q, end_point_q):
     if debug_flag == 1:
         print('[Finished Connections]')
     return server_output, cisco_connections
-    # else:
-    #     if debug_flag == 1:
-    #         print('[!!] Thread is flailing, attempting to recover')
-    #     threading._shutdown()
-
-
-# Variable Settings and some initialization
-width, height = 1920, 1080  # Default setting
-try:
-    read_config()
-except ValueError:
-    print('[!] Configuration is unreadable. Review configuration file: conf in program directory and ensure the data is correct.')
-font = ImageFont.truetype('fonts/UbuntuMono-R.ttf', 26)
-font_small = ImageFont.truetype('fonts/UbuntuMono-R.ttf', 20)
-
-
-shape_origin = (width * .8, height * .91)
-
-# Send captured SIGINT's to signal handler function to allow for a graceful exit
-signal.signal(signal.SIGINT, signal_handler)
-shapes_to_draw_class = [ShapeAlerts(shape_origin, 0, ""), ]
-
-
-def main():
-    count = 0
-
-    createImage = DrawImage(count)
-    createImage.reset_data()
-    createImage.get_font_size()
-
-    while True:
-        # Check if user wants to exit before any connections are opened
-        if exit_flag is True:
-            exit(0)
-
-        count += 1
-
-        createImage.reset_data()
-        img = createImage.return_image()
-
-        # Output to io stream
-        ze_output = io.BytesIO()
-        img.save(ze_output, format='PNG')
-        contents = ze_output.getvalue()
-
-        # Set as background
-        proc = subprocess.Popen(['feh', '--bg-scale', '-'], stdin=subprocess.PIPE)
-        proc.communicate(contents)
-
-        ze_output.close()
 
 
 if __name__ == '__main__':
-    main()
+    print('[!] Use "system_health.py" to run the program')
