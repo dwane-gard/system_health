@@ -17,6 +17,7 @@ from threading import Thread, Lock
 import signal
 from queue import Queue
 import curses
+
 from Basic import runserver_threaded_connections, read_config
 from SystemInformation import LocalData
 
@@ -324,7 +325,10 @@ def main():
 
             stdscr.erase()
             stdscr.border(0)
-            # try:
+
+            # Sort Cisco connections to ensure they stay in the same order
+            cisco_connections.sort(key=lambda x: x.host)
+
             BoxData(system_strings_to_write, 'System Health', 2)
             BoxData(server_output, 'Servers')
             BoxData(cisco_connections, 'Endpoints')

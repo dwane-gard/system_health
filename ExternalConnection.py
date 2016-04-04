@@ -4,6 +4,7 @@ import re
 
 debug_flag = 0
 
+
 # Gets DSL info from cisco 877 or 887
 class CiscoConnections:
     def __init__(self, host, user, passwd, debug_flag=0, good_colour='#00AA00', bad_colour='#FF0000'):
