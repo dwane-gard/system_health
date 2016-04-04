@@ -17,8 +17,9 @@ from threading import Thread, Lock
 import signal
 from queue import Queue
 import curses
-from start import runserver_threaded_connections, read_config
-from DrawImage import DrawImage
+from Basic import runserver_threaded_connections, read_config
+from SystemInformation import LocalData
+
 
 import inspect
 import subprocess
@@ -289,18 +290,18 @@ def local_main():
 
             # Create external connections and retrieve data
             config_change_flag = False
-            server_output, cisco_connections = runserver_threaded_connections(server_q, end_point_q)
+            server_output, cisco_connections = runserver_threaded_connections(server_q, end_point_q, debug_flag)
 
             # Get local data
-            createImage = DrawImage(count, cisco_connections, server_output)
-            ze_time = createImage.get_time()
-            ip_address = createImage.get_ip_address()
-            public_ip_address = createImage.get_public_ip_address()
+            localData = LocalData(count, cisco_connections, server_output)
+            ze_time = localData.get_time()
+            ip_address = localData.get_ip_address()
+            public_ip_address = localData.get_public_ip_address()
 
-            createImage.reset_system_health()
+            localData.reset_system_health()
 
-            cpu = '[%s] %s c' % (createImage.cpu.device_name, createImage.cpu.temp)
-            gpu = '[%s] %s c' % (createImage.gpu.device_name, createImage.gpu.temp)
+            cpu = '[%s] %s c' % (localData.cpu.device_name, localData.cpu.temp)
+            gpu = '[%s] %s c' % (localData.gpu.device_name, localData.gpu.temp)
             system_strings_to_write = [ze_time, ip_address, public_ip_address, cpu, gpu]
 
             ze_lock.acquire()

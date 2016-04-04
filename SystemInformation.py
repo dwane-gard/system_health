@@ -1,8 +1,96 @@
 import subprocess
+import time
+import socket
+from urllib.request import urlopen
+from queue import Queue
 
 good_colour = '#00AA00'
 intermediate_colour = '#FFA500'
 bad_colour = '#FF0000'
+
+
+class LocalData:
+    def __init__(self, count, cisco_connections, server_output):
+
+        self.cisco_connections = cisco_connections
+        self.server_output = server_output
+        self.deviceData = DeviceData()
+
+        self.ze_time = None
+        self.ip_address = None
+        self.pub_ip_address = None
+        self.gpu = None
+        self.cpu = None
+
+    def reset_system_health(self):
+        # Get system health from local system
+        for each_device in self.deviceData.devices:
+            each_device.cat_temp()
+            each_device.get_device_status()
+            if each_device.device_type == 'CPU':
+                self.cpu = each_device
+            if each_device.device_type == 'GPU':
+                self.gpu = each_device
+
+    def reset_data(self):
+        # Get system health from local system
+        for each_device in self.deviceData.devices:
+            each_device.cat_temp()
+            each_device.get_device_status()
+            if each_device.device_type == 'CPU':
+                self.cpu = each_device
+            if each_device.device_type == 'GPU':
+                self.gpu = each_device
+
+
+        self.get_public_ip_address()
+        self.get_ip_address()
+        self.get_time()
+
+    def get_time(self):
+        while True:
+            # Get time
+            localtime = time.asctime(time.localtime(time.time()))
+
+            # Check if time ends in 5 or 0 sec
+            if localtime[-6] == "0":
+                self.ze_time = str('[Time] ' + localtime)
+                return str('[Time] ' + localtime)
+
+            elif localtime[-6] == "5":
+                self.ze_time = str('[Time] ' + localtime)
+                return str('[Time] ' + localtime)
+
+            else:
+                # Sleep till the time is right
+                if int(localtime[-6]) < 5:
+                    time.sleep(5-int(localtime[-6]))
+                else:
+                    time.sleep(10-int(localtime[-6]))
+
+    def get_ip_address(self):
+        try:
+            ip_addr = socket.gethostbyaddr(socket.getfqdn())
+
+            if ip_addr[2][0] == '127.0.1.1' or ip_addr[1][0] == 'localhost':
+                s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                s.connect(('google.com', 0))
+                ip_addr = s.getsockname()[0]
+            self.ip_address = str('[IP] ' + ip_addr), good_colour
+            return str('[IP] ' + ip_addr)
+
+        except:
+            self.ip_address = "[IP] No Connection", intermediate_colour
+
+    def get_public_ip_address(self):
+        try:
+            pub_ip_address = (urlopen('http://ip.42.pl/short').read()).decode('utf-8')
+            pub_ip_address = '[Public IP] %s' % pub_ip_address
+            self.pub_ip_address = pub_ip_address, good_colour
+        except:
+            pub_ip_address = "[Public IP] No Connection"
+            self.pub_ip_address = pub_ip_address, intermediate_colour
+        return pub_ip_address
 
 class DeviceData:
     def __init__(self, debug_flag=0):
