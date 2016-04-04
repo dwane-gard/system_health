@@ -28,6 +28,8 @@ Python script to display system, server and endpoint health either as an curses 
   good_colour=#00AA00
   intermediate_colour=#FFA500
   bad_colour=#FF0000
+  height=1080
+  width=1920
 ~~~
 
 
