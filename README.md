@@ -1,6 +1,6 @@
 # system_health
 
-Python script to display system, server and endpoint health either as an curses ui.
+Python script to display system, server and endpoint health as an curses ui.
 
 ## Requirements:
 - Linux Operationg System
