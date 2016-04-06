@@ -155,8 +155,9 @@ class BoxData:
                                 stdscr.addstr(x_cur_pos, y_cur_pos, (str(each_member[1])), curses.color_pair(3))
                                 x_cur_pos += 1
                             else:
-                                stdscr.addstr(x_cur_pos, y_cur_pos, (str(each_member[1])))
-                                x_cur_pos += 1
+                                for each_line in self.split_for_multi_line(str(each_member[1])):
+                                    stdscr.addstr(x_cur_pos, y_cur_pos, (each_line))
+                                    x_cur_pos += 1
             else:
                 pass
 
@@ -165,6 +166,25 @@ class BoxData:
     def get_white_space(string):
         white_space_string = ' '*(int((width/2)-int(len(string)/2))-2)
         return white_space_string
+
+    @staticmethod
+    def split_for_multi_line(string):
+
+        string_list = string.split('|')
+        x = 0
+        running_string = ''
+        ze_lines = []
+
+        for each_string in string_list:
+            x += len(each_string)
+            if x < width:
+                running_string += each_string
+            else:
+                ze_lines.append(running_string)
+                running_string = each_string
+                x = 0
+        ze_lines.append(running_string)
+        return ze_lines
 
 
 class Menu:
